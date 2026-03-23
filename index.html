@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Напоминалка">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%234CAF50'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3E💊%3C/text%3E%3C/svg%3E">
+    <title>Напоминалка таблеток</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+            padding-bottom: 100px;
+        }
+        
+        /* Tab Bar */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 20px 30px;
+            border-top: 1px solid #e0e0e0;
+            z-index: 100;
+        }
+        
+        .tab-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            flex: 1;
+        }
+        
+        .tab-item.active {
+            background: #e8f5e9;
+        }
+        
+        .tab-icon {
+            font-size: 24px;
+            display: block;
+        }
+        
+        .tab-label {
+            font-size: 12px;
+            margin-top: 4px;
+            color: #666;
+        }
+        
+        .tab-item.active .tab-label {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+        
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .greeting {
+            font-size: 28px;
+            font-weight: 600;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .greeting-name {
+            font-size: 20px;
+            color: #333;
+            margin-top: 5px;
+        }
+        
+        .date {
+            font-size: 14px;
+            color: #999;
+            margin-top: 5px;
+        }
+        
+        /* Profile Selector */
+        .profile-selector {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .profile-chip {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+        
+        .profile-chip.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .profile-chip.add-profile {
+            background: #e8f5e9;
+            color: #4CAF50;
+        }
+        
+        /* Stats Widget */
+        .stats-widget {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .stats-widget-info h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .stats-widget-progress {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        
+        .stats-widget-percent {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        /* Medication Card */
+        .medication-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .medication-card.completed {
+            opacity: 0.7;
+            background: #e8f5e9;
+        }
+        
+        .medication-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .medication-info h3 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .medication-info p {
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .course-info {
+            font-size: 12px;
+            color: #ff9800;
+            margin-top: 5px;
+        }
+        
+        /* Pill Progress */
+        .pill-progress {
+            margin: 15px 0;
+        }
+        
+        .pill-stats {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .pill-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        
+        .pill-icon {
+            width: 44px;
+            height: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        
+        .pill-icon.taken {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .pill-icon.missed {
+            background: #f44336;
+            color: white;
+        }
+        
+        .pill-icon.pending {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .pill-icon.upcoming {
+            background: #e0e0e0;
+            color: #999;
+        }
+        
+        .time-badge {
+            display: inline-block;
+            background: #e8f5e9;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #4CAF50;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .take-btn {
+            background: #4CAF50;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 30px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        .take-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .take-btn:disabled {
+            background: #ccc;
+            transform: none;
+        }
+        
+        /* History & Stats */
+        .history-filters, .stats-filters {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .filter-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .history-stats {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .compliance-rate {
+            font-size: 48px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .history-item {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .history-item:active {
+            transform: scale(0.98);
+        }
+        
+        .history-date {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .history-details {
+            text-align: right;
+        }
+        
+        .history-taken {
+            color: #4CAF50;
+            font-weight: 600;
+        }
+        
+        .history-missed {
+            color: #f44336;
+            font-weight: 600;
+        }
+        
+        /* Chart */
+        .chart-container {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        
+        .chart-bars {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+            min-width: 300px;
+            height: 200px;
+            padding: 20px 0;
+        }
+        
+        .chart-bar-wrapper {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .chart-bar {
+            background: linear-gradient(180deg, #4CAF50 0%, #81C784 100%);
+            border-radius: 8px 8px 0 0;
+            transition: height 0.3s;
+            cursor: pointer;
+        }
+        
+        /* Buttons */
+        .add-btn {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: #4CAF50;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(76,175,80,0.3);
+            z-index: 101;
+        }
+        
+        .settings-btn {
+            position: fixed;
+            bottom: 90px;
+            left: 20px;
+            width: 60px;
+            height: 60px;
+            background: #667eea;
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.3);
+            z-index: 101;
+        }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-content input, .modal-content select, .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+        
+        .time-slots {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        
+        .time-slot {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+        
+        .time-slot input {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .remove-time {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-buttons button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .save-btn {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .danger-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .cancel-btn {
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+        
+        .notification-permission {
+            background: #fff3e0;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .medication-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .small-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .edit-btn {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .delete-btn {
+            background: #f44336;
+            color: white;
+        }
+        
+        .medication-stat-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 15px;
+        }
+        
+        .medication-stat-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #81C784);
+            transition: width 0.3s;
+        }
+        
+        .stat-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .clear-stat-btn {
+            background: #ff9800;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        
+        /* Celebration Modal */
+        .celebration-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s;
+        }
+        
+        .celebration-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            color: white;
+            animation: bounce 0.5s ease-out;
+        }
+        
+        .celebration-content h2 {
+            font-size: 32px;
+            margin-bottom: 20px;
+        }
+        
+        .celebration-content p {
+            font-size: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .celebration-content button {
+            background: white;
+            color: #667eea;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        @keyframes bounce {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        /* Medication History Section */
+        .medication-history-section {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .medication-history-item {
+            border-bottom: 1px solid #eee;
+            padding: 15px 0;
+        }
+        
+        .medication-history-item:last-child {
+            border-bottom: none;
+        }
+        
+        .medication-history-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .history-dose-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #f0f0f0;
+        }
+        
+        .history-dose-time {
+            color: #666;
+        }
+        
+        .history-dose-status {
+            font-weight: 600;
+        }
+        
+        .status-taken {
+            color: #4CAF50;
+        }
+        
+        .status-missed {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <!-- Tab Bar -->
+    <div class="tab-bar">
+        <div class="tab-item active" data-tab="home">
+            <span class="tab-icon">💊</span>
+            <span class="tab-label">Главная</span>
+        </div>
+        <div class="tab-item" data-tab="history">
+            <span class="tab-icon">📊</span>
+            <span class="tab-label">История</span>
+        </div>
+        <div class="tab-item" data-tab="stats">
+            <span class="tab-icon">📈</span>
+            <span class="tab-label">Статистика</span>
+        </div>
+    </div>
+    
+    <!-- Tab 1: Home -->
+    <div id="homeTab" class="tab-content active">
+        <div class="header">
+            <div class="greeting">💊 Напоминалка</div>
+            <div class="greeting-name" id="greetingName"></div>
+            <div class="date" id="currentDate"></div>
+        </div>
+        
+        <!-- Profile Selector -->
+        <div class="profile-selector" id="profileSelector"></div>
+        
+        <!-- Stats Widget -->
+        <div class="stats-widget" id="statsWidget">
+            <div class="stats-widget-info">
+                <h3>Сегодняшний прогресс</h3>
+                <div class="stats-widget-progress" id="widgetProgress">0/0</div>
+            </div>
+            <div class="stats-widget-percent" id="widgetPercent">0%</div>
+        </div>
+        
+        <div id="medicationsList"></div>
+    </div>
+    
+    <!-- Tab 2: History -->
+    <div id="historyTab" class="tab-content">
+        <div class="header">
+            <div class="greeting">📅 История приемов</div>
+        </div>
+        
+        <div class="history-filters" id="historyFilters">
+            <button class="filter-btn active" data-period="week">Неделя</button>
+            <button class="filter-btn" data-period="month">Месяц</button>
+            <button class="filter-btn" data-period="halfyear">6 месяцев</button>
+            <button class="filter-btn" data-period="year">Год</button>
+            <button class="filter-btn" data-period="all">Всё время</button>
+        </div>
+        
+        <div id="historyContent"></div>
+    </div>
+    
+    <!-- Tab 3: Statistics -->
+    <div id="statsTab" class="tab-content">
+        <div class="header">
+            <div class="greeting">📈 Детальная статистика</div>
+        </div>
+        
+        <div class="stats-filters" id="statsFilters">
+            <button class="filter-btn active" data-period="week">Неделя</button>
+            <button class="filter-btn" data-period="month">Месяц</button>
+            <button class="filter-btn" data-period="halfyear">6 месяцев</button>
+            <button class="filter-btn" data-period="year">Год</button>
+            <button class="filter-btn" data-period="all">Всё время</button>
+        </div>
+        
+        <div class="chart-container">
+            <h4>📊 Выполнение по дням</h4>
+            <div id="dailyChart" class="chart-bars"></div>
+        </div>
+        
+        <div class="chart-container">
+            <h4>💊 Статистика по лекарствам</h4>
+            <div id="medicationStats"></div>
+        </div>
+        
+        <button class="save-btn" onclick="clearAllStats()" style="width: 100%; margin-bottom: 20px;">🗑️ Очистить всю статистику</button>
+    </div>
+    
+    <button class="settings-btn" onclick="openSettings()">⚙️</button>
+    <button class="add-btn" onclick="openAddModal()">+</button>
+    
+    <!-- Add Medication Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <h3>Добавить лекарство</h3>
+            <input type="text" id="medName" placeholder="Название" autocomplete="off">
+            <input type="text" id="medDosage" placeholder="Дозировка (например: 500мг)">
+            <input type="number" id="medPerDose" placeholder="Количество штук за прием" value="1" min="1">
+            <input type="number" id="medTotalCourse" placeholder="Всего в курсе (штук, 0 = без курса)" value="0" min="0">
+            
+            <label>Время приема:</label>
+            <div class="time-slots" id="timeSlots">
+                <div class="time-slot">
+                    <input type="time" class="slot-time" value="09:00">
+                    <button type="button" class="remove-time" onclick="removeTimeSlot(this)">✖</button>
+                </div>
+            </div>
+            <button type="button" class="save-btn" onclick="addTimeSlot()" style="margin: 5px 0;">+ Добавить время</button>
+            
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeAddModal()">Отмена</button>
+                <button class="save-btn" onclick="addMedication()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Edit Medication Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3>Редактировать лекарство</h3>
+            <input type="hidden" id="editMedId">
+            <input type="text" id="editMedName" placeholder="Название">
+            <input type="text" id="editMedDosage" placeholder="Дозировка">
+            <input type="number" id="editMedPerDose" placeholder="Количество штук за прием" min="1">
+            <input type="number" id="editMedTotalCourse" placeholder="Всего в курсе (штук)" min="0">
+            
+            <label>Время приема:</label>
+            <div class="time-slots" id="editTimeSlots"></div>
+            <button type="button" class="save-btn" onclick="addEditTimeSlot()" style="margin: 5px 0;">+ Добавить время</button>
+            
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeEditModal()">Отмена</button>
+                <button class="save-btn" onclick="saveEditMedication()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profile Modal -->
+    <div id="profileModal" class="modal">
+        <div class="modal-content">
+            <h3>Управление профилями</h3>
+            <div id="profileList"></div>
+            <input type="text" id="newProfileName" placeholder="Имя нового профиля">
+            <div class="modal-buttons">
+                <button class="save-btn" onclick="addProfile()">Создать</button>
+                <button class="cancel-btn" onclick="closeProfileModal()">Закрыть</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <h3>Настройки</h3>
+            <label>Ваше имя:</label>
+            <input type="text" id="patientName" placeholder="Например: Олечка">
+            <label>Напоминания:</label>
+            <label style="display: flex; align-items: center; gap: 10px; margin: 10px 0;">
+                <input type="checkbox" id="reminderEnabled" checked> Включить уведомления
+            </label>
+            <label>Напоминать за:</label>
+            <select id="reminderMinutes">
+                <option value="5">5 минут</option>
+                <option value="15" selected>15 минут</option>
+                <option value="30">30 минут</option>
+                <option value="60">1 час</option>
+            </select>
+            <label>Экспорт данных:</label>
+            <button class="save-btn" onclick="exportData()" style="margin: 10px 0;">📤 Экспорт в JSON</button>
+            <label>Импорт данных:</label>
+            <input type="file" id="importFile" accept=".json">
+            <div class="modal-buttons">
+                <button class="cancel-btn" onclick="closeSettings()">Отмена</button>
+                <button class="save-btn" onclick="saveSettings()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notifPermission" class="notification-permission" style="display: none;">
+        🔔 Включите уведомления, чтобы не пропустить прием таблеток
+        <br>
+        <button class="enable-notif-btn" onclick="requestNotificationPermission()">Включить уведомления</button>
+    </div>
+
+    <script>
+        // Data structures
+        let profiles = {};
+        let currentProfile = "default";
+        let medications = [];
+        let intakes = {};
+        let patientName = "";
+        let reminderEnabled = true;
+        let reminderMinutes = 15;
+        let currentPeriod = "week";
+        
+        // Load data
+        function loadData() {
+            const savedProfiles = localStorage.getItem("profiles");
+            if (savedProfiles) {
+                profiles = JSON.parse(savedProfiles);
+            } else {
+                profiles = { default: { medications: [], intakes: {}, name: "Основной" } };
+            }
+            
+            currentProfile = localStorage.getItem("currentProfile") || "default";
+            patientName = localStorage.getItem("patientName") || "";
+            reminderEnabled = localStorage.getItem("reminderEnabled") !== "false";
+            reminderMinutes = parseInt(localStorage.getItem("reminderMinutes")) || 15;
+            
+            loadProfileData();
+        }
+        
+        function loadProfileData() {
+            if (!profiles[currentProfile]) {
+                profiles[currentProfile] = { medications: [], intakes: {}, name: currentProfile };
+            }
+            medications = profiles[currentProfile].medications || [];
+            intakes = profiles[currentProfile].intakes || {};
+            updateUI();
+        }
+        
+        function saveProfileData() {
+            profiles[currentProfile] = {
+                medications: medications,
+                intakes: intakes,
+                name: profiles[currentProfile]?.name || currentProfile
+            };
+            localStorage.setItem("profiles", JSON.stringify(profiles));
+            localStorage.setItem("currentProfile", currentProfile);
+        }
+        
+        function switchProfile(profileId) {
+            currentProfile = profileId;
+            loadProfileData();
+            saveProfileData();
+            updateUI();
+        }
+        
+        function addProfile() {
+            const name = document.getElementById('newProfileName').value.trim();
+            if (!name) return;
+            const profileId = name.toLowerCase().replace(/\s/g, '_') + '_' + Date.now();
+            if (!profiles[profileId]) {
+                profiles[profileId] = { medications: [], intakes: {}, name: name };
+                saveProfileData();
+            }
+            updateProfileSelector();
+            closeProfileModal();
+        }
+        
+        function deleteProfile(profileId) {
+            if (profileId === "default") {
+                alert("Нельзя удалить основной профиль");
+                return;
+            }
+            if (confirm(`Удалить профиль "${profiles[profileId]?.name || profileId}"? Все данные будут потеряны.`)) {
+                delete profiles[profileId];
+                if (currentProfile === profileId) {
+                    currentProfile = "default";
+                }
+                saveProfileData();
+                loadProfileData();
+                updateProfileSelector();
+            }
+        }
+        
+        function updateProfileSelector() {
+            const container = document.getElementById('profileSelector');
+            container.innerHTML = `
+                ${Object.keys(profiles).map(pid => `
+                    <div class="profile-chip ${currentProfile === pid ? 'active' : ''}" onclick="switchProfile('${pid}')">
+                        ${profiles[pid]?.name || pid}
+                        ${pid !== 'default' ? `<span onclick="event.stopPropagation(); deleteProfile('${pid}')" style="margin-left: 8px;">🗑️</span>` : ''}
+                    </div>
+                `).join('')}
+                <div class="profile-chip add-profile" onclick="openProfileModal()">+ Новый</div>
+            `;
+        }
+        
+        // Get intake key
+        function getIntakeKey(medId, date, timeIndex = null) {
+            const dateStr = date.toISOString().split('T')[0];
+            if (timeIndex !== null) {
+                return `${medId}_${dateStr}_${timeIndex}`;
+            }
+            return `${medId}_${dateStr}`;
+        }
+        
+        // Get all scheduled doses for a medication on a date
+        function getDosesForDate(med, date) {
+            if (!med.scheduleTimes || med.scheduleTimes.length === 0) return [];
+            const dateStr = date.toISOString().split('T')[0];
+            return med.scheduleTimes.map((time, idx) => {
+                const key = `${med.id}_${dateStr}_${idx}`;
+                const isTaken = intakes[key] === true;
+                const timeObj = new Date(date);
+                const [hours, minutes] = time.split(':');
+                timeObj.setHours(parseInt(hours), parseInt(minutes), 0);
+                return {
+                    index: idx,
+                    time: time,
+                    isTaken: isTaken,
+                    timeObj: timeObj,
+                    isPast: timeObj < new Date()
+                };
+            });
+        }
+        
+        // Check if all doses for today are taken
+        function isAllTakenToday() {
+            let totalDosesToday = 0;
+            let takenDosesToday = 0;
+            
+            medications.forEach(med => {
+                const doses = getDosesForDate(med, new Date());
+                totalDosesToday += doses.length;
+                takenDosesToday += doses.filter(d => d.isTaken).length;
+            });
+            
+            return totalDosesToday > 0 && totalDosesToday === takenDosesToday;
+        }
+        
+        // Show celebration modal
+        let celebrationShownToday = false;
+        
+        function showCelebration() {
+            if (celebrationShownToday) return;
+            celebrationShownToday = true;
+            
+            const modal = document.createElement('div');
+            modal.className = 'celebration-modal';
+            modal.innerHTML = `
+                <div class="celebration-content">
+                    <h2>🎉 Молодец! 🎉</h2>
+                    <p>На сегодня все!<br>Увидимся завтра ☀️</p>
+                    <button onclick="this.closest('.celebration-modal').remove()">✨ Отлично ✨</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            
+            setTimeout(() => {
+                if (modal) modal.remove();
+            }, 5000);
+        }
+        
+        // Get pill progress for display
+        function getPillProgress(med) {
+            const perDose = med.perDose || 1;
+            const totalCourse = med.totalCourse || 0;
+            const doses = getDosesForDate(med, new Date());
+            const takenDoses = doses.filter(d => d.isTaken).length;
+            const totalDoses = doses.length;
+            const takenPills = takenDoses * perDose;
+            const totalPillsToday = totalDoses * perDose;
+            
+            // Calculate total taken from history for course
+            let courseTaken = 0;
+            if (totalCourse > 0) {
+                const allIntakes = Object.keys(intakes).filter(key => key.startsWith(med.id + "_")).length;
+                courseTaken = allIntakes * perDose;
+            }
+            
+            return {
+                perDose,
+                totalCourse,
+                takenToday: takenPills,
+                totalToday: totalPillsToday,
+                courseTaken,
+                courseRemaining: totalCourse > 0 ? totalCourse - courseTaken : null,
+                doses: doses,
+                takenDosesCount: takenDoses,
+                totalDosesCount: totalDoses
+            };
+        }
+        
+        // Mark dose as taken
+        function markDoseTaken(med, doseIndex) {
+            const today = new Date();
+            const key = getIntakeKey(med.id, today, doseIndex);
+            
+            if (intakes[key] === true) return;
+            
+            intakes[key] = true;
+            saveProfileData();
+            updateUI();
+            
+            // Check if all taken today
+            if (isAllTakenToday()) {
+                showCelebration();
+            }
+            
+            // Check if course completed
+            const progress = getPillProgress(med);
+            if (progress.totalCourse > 0 && progress.courseRemaining === 0) {
+                showNotification("🎉 Курс завершен!", `${med.name} - весь курс принят!`);
+            } else {
+                showNotification("✅ Отлично!", `${med.name} принят${patientName ? ', ' + patientName : ''}!`);
+            }
+        }
+        
+        // Add medication
+        function addMedication() {
+            const name = document.getElementById('medName').value.trim();
+            if (!name) {
+                alert("Введите название лекарства");
+                return;
+            }
+            
+            const dosage = document.getElementById('medDosage').value.trim();
+            const perDose = parseInt(document.getElementById('medPerDose').value) || 1;
+            const totalCourse = parseInt(document.getElementById('medTotalCourse').value) || 0;
+            
+            const timeInputs = document.querySelectorAll('#timeSlots .slot-time');
+            const scheduleTimes = Array.from(timeInputs).map(input => input.value).filter(t => t);
+            
+            if (scheduleTimes.length === 0) {
+                alert("Добавьте хотя бы одно время приема");
+                return;
+            }
+            
+            const newMed = {
+                id: Date.now().toString(),
+                name: name,
+                dosage: dosage,
+                perDose: perDose,
+                totalCourse: totalCourse,
+                scheduleTimes: scheduleTimes,
+                createdAt: new Date().toISOString()
+            };
+            
+            medications.push(newMed);
+            medications.sort((a, b) => a.scheduleTimes[0].localeCompare(b.scheduleTimes[0]));
+            saveProfileData();
+            updateUI();
+            closeAddModal();
+            
+            // Schedule notifications for each time
+            newMed.scheduleTimes.forEach((time, idx) => {
+                scheduleNotification(newMed, time, idx);
+            });
+        }
+        
+        // Edit medication
+        function editMedication(med) {
+            document.getElementById('editMedId').value = med.id;
+            document.getElementById('editMedName').value = med.name;
+            document.getElementById('editMedDosage').value = med.dosage || '';
+            document.getElementById('editMedPerDose').value = med.perDose || 1;
+            document.getElementById('editMedTotalCourse').value = med.totalCourse || 0;
+            
+            const container = document.getElementById('editTimeSlots');
+            container.innerHTML = med.scheduleTimes.map((time, idx) => `
+                <div class="time-slot">
+                    <input type="time" class="slot-time" value="${time}">
+                    <button type="button" class="remove-time" onclick="removeEditTimeSlot(this)">✖</button>
+                </div>
+            `).join('');
+            
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        
+        function saveEditMedication() {
+            const medId = document.getElementById('editMedId').value;
+            const index = medications.findIndex(m => m.id === medId);
+            if (index === -1) return;
+            
+            const newName = document.getElementById('editMedName').value.trim();
+            if (!newName) return;
+            
+            const timeInputs = document.querySelectorAll('#editTimeSlots .slot-time');
+            const scheduleTimes = Array.from(timeInputs).map(input => input.value).filter(t => t);
+            
+            if (scheduleTimes.length === 0) {
+                alert("Добавьте хотя бы одно время приема");
+                return;
+            }
+            
+            medications[index] = {
+                ...medications[index],
+                name: newName,
+                dosage: document.getElementById('editMedDosage').value.trim(),
+                perDose: parseInt(document.getElementById('editMedPerDose').value) || 1,
+                totalCourse: parseInt(document.getElementById('editMedTotalCourse').value) || 0,
+                scheduleTimes: scheduleTimes
+            };
+            
+            saveProfileData();
+            updateUI();
+            closeEditModal();
+            
+            // Reschedule notifications
+            medications[index].scheduleTimes.forEach((time, idx) => {
+                scheduleNotification(medications[index], time, idx);
+            });
+        }
+        
+        // Delete medication with history option
+        function deleteMedicationWithOption(medId) {
+            const med = medications.find(m => m.id === medId);
+            if (!med) return;
+            
+            const shouldDeleteHistory = confirm(`Удалить "${med.name}"?\n\n"OK" - удалить лекарство и ВСЮ историю\n"Отмена" - удалить лекарство, но сохранить статистику в истории`);
+            
+            if (shouldDeleteHistory) {
+                // Delete all intakes for this medication
+                Object.keys(intakes).forEach(key => {
+                    if (key.startsWith(medId + "_")) {
+                        delete intakes[key];
+                    }
+                });
+            } else {
+                // Mark medication as inactive but keep history
+                med.isActive = false;
+            }
+            
+            medications = medications.filter(m => m.id !== medId);
+            saveProfileData();
+            updateUI();
+            
+            // Cancel notifications
+            if (window.timeouts && window.timeouts[medId]) {
+                Object.values(window.timeouts[medId]).forEach(t => clearTimeout(t));
+                delete window.timeouts[medId];
+            }
+        }
+        
+        // Clear statistics for specific medication
+        function clearMedicationStats(medId) {
+            if (confirm("Очистить всю статистику приема для этого лекарства?")) {
+                Object.keys(intakes).forEach(key => {
+                    if (key.startsWith(medId + "_")) {
+                        delete intakes[key];
+                    }
+                });
+                saveProfileData();
+                updateUI();
+                updateStatistics();
+                alert("Статистика очищена");
+            }
+        }
+        
+        // Clear all statistics
+        function clearAllStats() {
+            if (confirm("Очистить ВСЮ статистику приема для всех лекарств? Это действие нельзя отменить.")) {
+                intakes = {};
+                saveProfileData();
+                updateUI();
+                updateStatistics();
+                alert("Вся статистика очищена");
+            }
+        }
+        
+        // Get statistics for period
+        function getStatsForPeriod(period) {
+            const now = new Date();
+            let startDate = new Date();
+            
+            switch(period) {
+                case 'week': startDate.setDate(now.getDate() - 7); break;
+                case 'month': startDate.setMonth(now.getMonth() - 1); break;
+                case 'halfyear': startDate.setMonth(now.getMonth() - 6); break;
+                case 'year': startDate.setFullYear(now.getFullYear() - 1); break;
+                case 'all': startDate = new Date(2000, 0, 1); break;
+                default: startDate.setDate(now.getDate() - 7);
+            }
+            
+            const dates = [];
+            const current = new Date(startDate);
+            while (current <= now) {
+                dates.push(new Date(current));
+                current.setDate(current.getDate() + 1);
+            }
+            
+            const dailyStats = dates.map(date => {
+                let totalDoses = 0;
+                let takenDoses = 0;
+                
+                medications.forEach(med => {
+                    const doses = getDosesForDate(med, date);
+                    totalDoses += doses.length;
+                    takenDoses += doses.filter(d => d.isTaken).length;
+                });
+                
+                return {
+                    date: date,
+                    total: totalDoses,
+                    taken: takenDoses,
+                    percent: totalDoses > 0 ? (takenDoses / totalDoses) * 100 : 0
+                };
+            });
+            
+            const medStats = medications.map(med => {
+                let totalDoses = 0;
+                let takenDoses = 0;
+                
+                dates.forEach(date => {
+                    const doses = getDosesForDate(med, date);
+                    totalDoses += doses.length;
+                    takenDoses += doses.filter(d => d.isTaken).length;
+                });
+                
+                return {
+                    id: med.id,
+                    name: med.name,
+                    dosage: med.dosage,
+                    perDose: med.perDose,
+                    totalCourse: med.totalCourse,
+                    totalDoses: totalDoses,
+                    takenDoses: takenDoses,
+                    percent: totalDoses > 0 ? (takenDoses / totalDoses) * 100 : 0
+                };
+            });
+            
+            const totalDoses = dailyStats.reduce((sum, d) => sum + d.total, 0);
+            const totalTaken = dailyStats.reduce((sum, d) => sum + d.taken, 0);
+            
+            return { dailyStats, medStats, totalDoses, totalTaken };
+        }
+        
+        // Update UI
+        function updateUI() {
+            // Reset celebration flag at midnight
+            const lastDate = localStorage.getItem("lastCelebrationDate");
+            const today = new Date().toISOString().split('T')[0];
+            if (lastDate !== today) {
+                celebrationShownToday = false;
+                localStorage.setItem("lastCelebrationDate", today);
+            }
+            
+            // Update greeting
+            document.getElementById('greetingName').innerHTML = patientName ? `Привет, ${patientName}! 🌸` : `Добавьте имя в настройках`;
+            const options = { weekday: 'long', day: 'numeric', month: 'long' };
+            document.getElementById('currentDate').innerHTML = new Date().toLocaleDateString('ru-RU', options);
+            
+            // Update widget
+            let todayTotal = 0, todayTaken = 0;
+            medications.forEach(med => {
+                const doses = getDosesForDate(med, new Date());
+                todayTotal += doses.length;
+                todayTaken += doses.filter(d => d.isTaken).length;
+            });
+            
+            document.getElementById('widgetProgress').innerHTML = `${todayTaken}/${todayTotal}`;
+            document.getElementById('widgetPercent').innerHTML = todayTotal > 0 ? `${Math.round((todayTaken/todayTotal)*100)}%` : '0%';
+            
+            // Update medications list
+            const container = document.getElementById('medicationsList');
+            if (medications.length === 0) {
+                container.innerHTML = '<div class="empty-state">✨ Нет лекарств<br>Нажмите + чтобы добавить</div>';
+                return;
+            }
+            
+            container.innerHTML = medications.map(med => {
+                const progress = getPillProgress(med);
+                const completed = progress.totalCourse > 0 && progress.courseRemaining === 0;
+                
+                // Generate pill icons
+                const pillIcons = progress.doses.map((dose, idx) => {
+                    let iconClass = 'pill-icon';
+                    let icon = '💊';
+                    if (dose.isTaken) {
+                        iconClass += ' taken';
+                        icon = '✅';
+                    } else if (dose.isPast) {
+                        iconClass += ' missed';
+                        icon = '❌';
+                    } else {
+                        iconClass += ' upcoming';
+                        icon = '💊';
+                    }
+                    return `<div class="${iconClass}" onclick="markDoseTaken(${JSON.stringify(med).replace(/"/g, '&quot;')}, ${idx})">${icon}</div>`;
+                }).join('');
+                
+                return `
+                    <div class="medication-card ${completed ? 'completed' : ''}">
+                        <div class="medication-header">
+                            <div class="medication-info">
+                                <h3>${escapeHtml(med.name)}</h3>
+                                ${med.dosage ? `<p>${escapeHtml(med.dosage)}</p>` : ''}
+                                ${progress.totalCourse > 0 ? `<div class="course-info">📦 Курс: ${progress.courseTaken} / ${progress.totalCourse} (осталось ${progress.courseRemaining})</div>` : ''}
+                            </div>
+                            <div style="font-size: 12px; color: #4CAF50;">${med.perDose || 1} шт/прием</div>
+                        </div>
+                        
+                        <div class="pill-progress">
+                            <div class="pill-stats">${progress.takenDosesCount} / ${progress.totalDosesCount} приемов сегодня (${progress.takenToday} / ${progress.totalToday} шт)</div>
+                            <div class="pill-icons">
+                                ${pillIcons}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            ${med.scheduleTimes.map(time => `<span class="time-badge">🕐 ${formatTime(time)}</span>`).join('')}
+                        </div>
+                        
+                        <div class="medication-actions">
+                            <button class="small-btn edit-btn" onclick="editMedication(${JSON.stringify(med).replace(/"/g, '&quot;')})">✏️ Редактировать</button>
+                            <button class="small-btn delete-btn" onclick="deleteMedicationWithOption('${med.id}')">🗑️ Удалить</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            updateProfileSelector();
+            
+            // Check if all taken and show celebration if needed
+            if (isAllTakenToday() && !celebrationShownToday) {
+                showCelebration();
+            }
+            
+            // Update history/stats if active
+            const activeTab = document.querySelector('.tab-content.active')?.id;
+            if (activeTab === 'historyTab') updateHistory();
+            else if (activeTab === 'statsTab') updateStatistics();
+        }
+        
+        function updateHistory() {
+            const stats = getStatsForPeriod(currentPeriod);
+            const container = document.getElementById('historyContent');
+            
+            if (stats.dailyStats.length === 0) {
+                container.innerHTML = '<div class="empty-state">📭 Нет данных за выбранный период</div>';
+                return;
+            }
+            
+            const overallPercent = stats.totalDoses > 0 ? (stats.totalTaken / stats.totalDoses) * 100 : 0;
+            const recentStats = [...stats.dailyStats].reverse();
+            
+            container.innerHTML = `
+                <div class="history-stats">
+                    <h4>📊 Общая статистика за период</h4>
+                    <div class="compliance-rate">${overallPercent.toFixed(1)}%</div>
+                    <p style="text-align: center;">Выполнено ${stats.totalTaken} из ${stats.totalDoses} приемов</p>
+                </div>
+                ${recentStats.map(day => `
+                    <div class="history-item" onclick="showDayDetails('${day.date.toISOString()}')">
+                        <div style="display: flex; justify-content: space-between;">
+                            <div>
+                                <div class="history-date">${formatDate(day.date)}</div>
+                                <div class="history-meds">${day.total} приемов</div>
+                            </div>
+                            <div class="history-details">
+                                <div class="${day.taken === day.total ? 'history-taken' : 'history-missed'}">
+                                    ${day.taken} / ${day.total}
+                                </div>
+                                <div>${day.percent.toFixed(0)}%</div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            `;
+        }
+        
+        function updateStatistics() {
+            const stats = getStatsForPeriod(currentPeriod);
+            
+            // Daily chart
+            const chartContainer = document.getElementById('dailyChart');
+            const maxPercent = Math.max(...stats.dailyStats.map(d => d.percent), 10);
+            
+            chartContainer.innerHTML = stats.dailyStats.map(day => `
+                <div class="chart-bar-wrapper">
+                    <div class="chart-bar" style="height: ${(day.percent / maxPercent) * 160}px; background: ${day.percent === 100 ? '#4CAF50' : day.percent > 50 ? '#81C784' : '#FFB74D'}"></div>
+                    <div class="chart-label">${formatShortDate(day.date)}</div>
+                    <div style="font-size: 10px;">${day.percent.toFixed(0)}%</div>
+                </div>
+            `).join('');
+            
+            // Medication stats
+            const medContainer = document.getElementById('medicationStats');
+            medContainer.innerHTML = stats.medStats.map(med => `
+                <div class="medication-stat-item">
+                    <div class="medication-stat-header">
+                        <div>
+                            <strong>${escapeHtml(med.name)}</strong>
+                            ${med.dosage ? `<br><small>${escapeHtml(med.dosage)}</small>` : ''}
+                            ${med.perDose > 1 ? `<br><small>${med.perDose} шт/прием</small>` : ''}
+                        </div>
+                        <div style="text-align: right;">
+                            <div>${med.takenDoses} / ${med.totalDoses}</div>
+                            <div style="font-size: 20px; font-weight: bold;">${med.percent.toFixed(0)}%</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${med.percent}%"></div>
+                    </div>
+                    <div class="stat-actions">
+                        <button class="clear-stat-btn" onclick="clearMedicationStats('${med.id}')">🗑️ Очистить статистику</button>
+                    </div>
+                </div>
+            `).join('');
+            
+            if (stats.medStats.length === 0) {
+                medContainer.innerHTML = '<div class="empty-state">💊 Нет данных</div>';
+            }
+        }
+        
+        function showDayDetails(dateStr) {
+            const date = new Date(dateStr);
+            const dayStats = getStatsForPeriod('all').dailyStats.find(d => d.date.toISOString().split('T')[0] === date.toISOString().split('T')[0]);
+            if (!dayStats) return;
+            
+            let details = `📅 ${formatFullDate(date)}\n\n`;
+            medications.forEach(med => {
+                const doses = getDosesForDate(med, date);
+                const taken = doses.filter(d => d.isTaken).length;
+                if (doses.length > 0) {
+                    details += `\n${med.name} (${med.perDose || 1} шт/прием):\n`;
+                    doses.forEach(dose => {
+                        details += `  ${formatTime(dose.time)}: ${dose.isTaken ? '✅ Выпито' : '❌ Не выпито'}\n`;
+                    });
+                }
+            });
+            alert(details);
+        }
+        
+        // Time slot management
+        function addTimeSlot() {
+            const container = document.getElementById('timeSlots');
+            const div = document.createElement('div');
+            div.className = 'time-slot';
+            div.innerHTML = `
+                <input type="time" class="slot-time" value="12:00">
+                <button type="button" class="remove-time" onclick="removeTimeSlot(this)">✖</button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeTimeSlot(btn) {
+            btn.parentElement.remove();
+        }
+        
+        function addEditTimeSlot() {
+            const container = document.getElementById('editTimeSlots');
+            const div = document.createElement('div');
+            div.className = 'time-slot';
+            div.innerHTML = `
+                <input type="time" class="slot-time" value="12:00">
+                <button type="button" class="remove-time" onclick="removeEditTimeSlot(this)">✖</button>
+            `;
+            container.appendChild(div);
+        }
+        
+        function removeEditTimeSlot(btn) {
+            btn.parentElement.remove();
+        }
+        
+        // Formatting
+        function formatTime(time) {
+            if (!time) return "—";
+            const [hours, minutes] = time.split(':');
+            const hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            const hour12 = hour % 12 || 12;
+            return `${hour12}:${minutes} ${ampm}`;
+        }
+        
+        function formatDate(date) {
+            const d = new Date(date);
+            const months = ['янв', 'фев', 'мар', 'апр', 'май', 'июн', 'июл', 'авг', 'сен', 'окт', 'ноя', 'дек'];
+            const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            return `${weekdays[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]}`;
+        }
+        
+        function formatFullDate(date) {
+            const d = new Date(date);
+            const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+            const weekdays = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
+            return `${weekdays[d.getDay()]}, ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+        }
+        
+        function formatShortDate(date) {
+            const d = new Date(date);
+            return `${d.getDate()}/${d.getMonth() + 1}`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Modal functions
+        function openAddModal() {
+            document.getElementById('addModal').style.display = 'flex';
+        }
+        
+        function closeAddModal() {
+            document.getElementById('addModal').style.display = 'none';
+        }
+        
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        
+        function openProfileModal() {
+            const container = document.getElementById('profileList');
+            container.innerHTML = Object.keys(profiles).map(pid => `
+                <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee;">
+                    <span>${profiles[pid]?.name || pid}</span>
+                    ${pid !== 'default' ? `<button onclick="deleteProfile('${pid}')" class="danger-btn" style="padding: 4px 12px;">Удалить</button>` : ''}
+                </div>
+            `).join('');
+            document.getElementById('profileModal').style.display = 'flex';
+        }
+        
+        function closeProfileModal() {
+            document.getElementById('profileModal').style.display = 'none';
+            document.getElementById('newProfileName').value = '';
+        }
+        
+        function openSettings() {
+            document.getElementById('patientName').value = patientName;
+            document.getElementById('reminderEnabled').checked = reminderEnabled;
+            document.getElementById('reminderMinutes').value = reminderMinutes;
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+        
+        function closeSettings() {
+            document.getElementById('settingsModal').style.display = 'none';
+        }
+        
+        function saveSettings() {
+            patientName = document.getElementById('patientName').value.trim();
+            reminderEnabled = document.getElementById('reminderEnabled').checked;
+            reminderMinutes = parseInt(document.getElementById('reminderMinutes').value);
+            
+            localStorage.setItem("patientName", patientName);
+            localStorage.setItem("reminderEnabled", reminderEnabled);
+            localStorage.setItem("reminderMinutes", reminderMinutes);
+            
+            updateUI();
+            closeSettings();
+            
+            // Reschedule all notifications
+            medications.forEach(med => {
+                if (window.timeouts && window.timeouts[med.id]) {
+                    Object.values(window.timeouts[med.id]).forEach(t => clearTimeout(t));
+                }
+                med.scheduleTimes.forEach((time, idx) => {
+                    scheduleNotification(med, time, idx);
+                });
+            });
+        }
+        
+        // Export/Import
+        function exportData() {
+            const data = {
+                profiles: profiles,
+                currentProfile: currentProfile,
+                patientName: patientName,
+                reminderEnabled: reminderEnabled,
+                reminderMinutes: reminderMinutes,
+                exportDate: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `medications_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            alert("✅ Данные экспортированы!");
+        }
+        
+        document.getElementById('importFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const data = JSON.parse(evt.target.result);
+                    if (data.profiles) profiles = data.profiles;
+                    if (data.currentProfile) currentProfile = data.currentProfile;
+                    if (data.patientName) patientName = data.patientName;
+                    if (data.reminderEnabled !== undefined) reminderEnabled = data.reminderEnabled;
+                    if (data.reminderMinutes) reminderMinutes = data.reminderMinutes;
+                    
+                    saveProfileData();
+                    localStorage.setItem("patientName", patientName);
+                    localStorage.setItem("reminderEnabled", reminderEnabled);
+                    localStorage.setItem("reminderMinutes", reminderMinutes);
+                    
+                    loadProfileData();
+                    alert("✅ Импорт выполнен успешно!");
+                    closeSettings();
+                } catch (err) {
+                    alert("Ошибка импорта: неверный формат файла");
+                }
+            };
+            reader.readAsText(file);
+        });
+        
+        // Notifications
+        async function requestNotificationPermission() {
+            if ('Notification' in window) {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    document.getElementById('notifPermission').style.display = 'none';
+                    medications.forEach(med => {
+                        med.scheduleTimes.forEach((time, idx) => {
+                            scheduleNotification(med, time, idx);
+                        });
+                    });
+                }
+            }
+        }
+        
+        function showNotification(title, body) {
+            if ('Notification' in window && Notification.permission === 'granted' && reminderEnabled) {
+                new Notification(title, { 
+                    body: body, 
+                    icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Ccircle cx="50" cy="50" r="50" fill="%234CAF50"/%3E%3Ctext x="50" y="67" font-size="50" text-anchor="middle" fill="white"%3E💊%3C/text%3E%3C/svg%3E'
+                });
+            }
+        }
+        
+        function scheduleNotification(med, time, doseIndex) {
+            if (!reminderEnabled) return;
+            if (!('Notification' in window) || Notification.permission !== 'granted') {
+                if (Notification.permission === 'default') {
+                    document.getElementById('notifPermission').style.display = 'block';
+                }
+                return;
+            }
+            
+            const [hours, minutes] = time.split(':');
+            const now = new Date();
+            const scheduled = new Date();
+            scheduled.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+            
+            // If reminderMinutes is set, schedule reminder before
+            if (reminderMinutes > 0) {
+                const reminderTime = new Date(scheduled);
+                reminderTime.setMinutes(reminderTime.getMinutes() - reminderMinutes);
+                
+                if (reminderTime > now) {
+                    const reminderTimeoutId = setTimeout(() => {
+                        const message = patientName ? `${patientName}, скоро принимать таблетки!` : 'Скоро принимать таблетки!';
+                        showNotification("⏰ Напоминание", `${message} ${med.name} через ${reminderMinutes} минут`);
+                    }, reminderTime.getTime() - now.getTime());
+                    
+                    if (!window.reminderTimeouts) window.reminderTimeouts = {};
+                    if (!window.reminderTimeouts[med.id]) window.reminderTimeouts[med.id] = {};
+                    window.reminderTimeouts[med.id][doseIndex] = reminderTimeoutId;
+                }
+            }
+            
+            if (scheduled <= now) {
+                scheduled.setDate(scheduled.getDate() + 1);
+            }
+            
+            const timeUntil = scheduled.getTime() - now.getTime();
+            
+            const timeoutId = setTimeout(() => {
+                const message = patientName ? `${patientName}, пора принять таблеточку 💊` : 'Пора принять таблеточку 💊';
+                showNotification(message, `${med.name} ${med.dosage || ''} (${med.perDose || 1} шт)`);
+                scheduleNotification(med, time, doseIndex);
+            }, timeUntil);
+            
+            if (!window.timeouts) window.timeouts = {};
+            if (!window.timeouts[med.id]) window.timeouts[med.id] = {};
+            window.timeouts[med.id][doseIndex] = timeoutId;
+        }
+        
+        // Tab switching
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab-item');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabId = tab.dataset.tab;
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.querySelectorAll('.tab-content').forEach(content => {
+                        content.classList.remove('active');
+                    });
+                    document.getElementById(`${tabId}Tab`).classList.add('active');
+                    
+                    if (tabId === 'history') updateHistory();
+                    else if (tabId === 'stats') updateStatistics();
+                });
+            });
+        }
+        
+        function setupFilters() {
+            const filterGroups = ['historyFilters', 'statsFilters'];
+            filterGroups.forEach(groupId => {
+                const container = document.getElementById(groupId);
+                if (!container) return;
+                container.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        currentPeriod = btn.dataset.period;
+                        if (groupId === 'historyFilters') updateHistory();
+                        else updateStatistics();
+                    });
+                });
+            });
+        }
+        
+        // Initialize
+        loadData();
+        setupTabs();
+        setupFilters();
+        
+        // Reset celebration flag at midnight
+        setInterval(() => {
+            const today = new Date().toISOString().split('T')[0];
+            const lastDate = localStorage.getItem("lastCelebrationDate");
+            if (lastDate !== today) {
+                celebrationShownToday = false;
+                localStorage.setItem("lastCelebrationDate", today);
+                updateUI();
+            }
+        }, 60000);
+        
+        if ('Notification' in window && Notification.permission === 'default') {
+            document.getElementById('notifPermission').style.display = 'block';
+        }
+        
+        window.onclick = function(event) {
+            if (event.target.classList && event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        };
+    </script>
+</body>
+</html>
